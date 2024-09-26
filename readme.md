@@ -25,9 +25,10 @@ Create a text outline effect that follows the shape of the text:
 
 One possible solution is to by stroking the text, but you will need to find a way to seamlessly connect the edges of the words together.
 
+![](./outline.png)
+
 **Test Criteria**
 - This must support words on multiple lines and single lines.
 
-![](./outline.png)
 
 
