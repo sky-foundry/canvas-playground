@@ -2,19 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 
 export const App = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<fabric.Canvas | null>(null); 
   const [text, setText] = useState<string>('abc');
   const [fontSize, setFontSize] = useState<number>(100);
+  const [fontFamily, setFontFamily] = useState<string>('Georgia');
+  const [imageUrl, setImageUrl] = useState<string>('/metal.jpg');
+  const loadImage = (_imageUrl: string) => {
+    setImageUrl(_imageUrl)
+  };
 
   useEffect(() => {
-    const canvas = new fabric.Canvas(canvasRef.current);
-
-    fabric.Image.fromURL('/metal.jpg', (img) => {
-      img.scaleToWidth(800);
-      img.scaleToHeight(600);
-
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
-    });
+    const canvas = new fabric.Canvas('fabric-canvas');
+    canvasRef.current = canvas;
+    if (canvasRef.current) {
+      fabric.Image.fromURL(imageUrl, (img) => {
+        img.scaleToWidth(800);
+        img.scaleToHeight(600);
+        canvasRef.current?.setBackgroundImage(img, canvasRef.current.renderAll.bind(canvasRef.current)); 
+      });
+    }
 
     const gradient = new fabric.Gradient({
       type: 'linear',
@@ -31,7 +37,7 @@ export const App = () => {
     });
 
     const engravedText = new fabric.Text(text, {
-      fontFamily: 'Georgia',
+      fontFamily: fontFamily,
       fontSize: fontSize,
       fontWeight: 800,
       fill: 'rgba(0, 0, 0, .1)',
@@ -42,7 +48,7 @@ export const App = () => {
     });
 
     const shadowText = new fabric.Text(text, {
-      fontFamily: 'Georgia',
+      fontFamily: fontFamily,
       fontSize: fontSize,
       fontWeight: 800,
       fill: '',
@@ -67,17 +73,19 @@ export const App = () => {
 
     return () => {
       canvas.dispose();
+      canvasRef.current = null; 
     };
-  }, [text, fontSize]);
+  }, [text, fontSize, fontFamily, imageUrl]);
 
   return (
     <>
       <canvas
-        ref={canvasRef}
+        id="fabric-canvas"
         width={800}
         height={600}
         style={{ border: '1px solid #ccc' }}
       />
+
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
         <input
@@ -90,6 +98,7 @@ export const App = () => {
           }}
         />
       </div>
+
       <div className="w-64 flex justify-between items-center">
         <label>Font Size: </label>
         <input
@@ -104,7 +113,67 @@ export const App = () => {
           }}
         />
       </div>
+
+      <div className="w-64 flex justify-between items-center mt-5">
+        <label>Font Family: </label>
+        <select
+          className="border-2 border-solid border-[#000] rounded-md w-32 px-2 py-1"
+          value={fontFamily}
+          onChange={(e) => {
+            const selectedFont = (e.target as HTMLSelectElement).value;
+            setFontFamily(selectedFont);
+          }}
+        >
+          <option value="Georgia">Georgia</option>
+          <option value="Arial">Arial</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Trebuchet MS">Trebuchet MS</option>
+          <option value="Lucida Console">Lucida Console</option>
+          <option value="Comic Sans MS">Comic Sans MS</option>
+        </select>
+      </div>
+
+      <div className="w-64 flex justify-between items-center mt-5">
+        <label>Background Image: </label>
+        <select
+          className="border-2 border-solid border-[#000] rounded-md w-32 px-2 py-1"
+          onChange={(e) => {
+            const selectedImage = (e.target as HTMLSelectElement).value; 
+            if (selectedImage === 'upload') {
+              document.getElementById('imageUpload')?.click();
+            } else {
+              loadImage(selectedImage);
+            }
+          }}
+        >
+          <option value="/metal.jpg">Metal</option>
+          <option value="/wood.jpg">Wood</option>
+          <option value="/stone.jpg">Stone</option>
+          <option value="upload">Upload Your Own</option>
+        </select>
+
+        <input
+          id="imageUpload"
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const uploadedImage = event.target?.result;
+                if (uploadedImage) {
+                  loadImage(uploadedImage as string); 
+                }
+              };
+              reader.readAsDataURL(file);
+            }
+          }}
+        />
+      </div>
     </>
   );
 };
-
