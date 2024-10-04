@@ -1,12 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
+import Konva from 'konva';
+
+const strokeWidthEffeciency = {
+  "Georgia": 0.4,
+  "Arial": 0.33,
+  "Courier New": 1.37,
+  "Verdana": .45,
+  "Times New Roman": .4,
+  "Trebuchet MS": .48,
+  "Lucida Console": 1.85,
+  "Comic Sans MS": .5,
+}
 
 export const App = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null); 
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [text, setText] = useState<string>('abc');
   const [fontSize, setFontSize] = useState<number>(100);
   const [fontFamily, setFontFamily] = useState<string>('Georgia');
   const [imageUrl, setImageUrl] = useState<string>('/metal.jpg');
+
   const loadImage = (_imageUrl: string) => {
     setImageUrl(_imageUrl)
   };
@@ -71,20 +85,92 @@ export const App = () => {
     canvas.add(group);
     canvas.renderAll();
 
+    const width = window.innerWidth / 2;
+    const height = 600;
+
+    const stage = new Konva.Stage({
+      container: containerRef.current as string,
+      width,
+      height
+    })
+
+    const backgroundLayer = new Konva.Layer();
+    stage.add(backgroundLayer);
+
+    const imageObj = new Image();
+    imageObj.src = './wood.jpg';
+    imageObj.onload = function () {
+      const backgroundImage = new Konva.Image({
+        x: 0,
+        y: 0,
+        image: imageObj,
+        width,
+        height
+      })
+      backgroundLayer.add(backgroundImage);
+      backgroundLayer.draw();
+    }
+
+    const stickerLayer = new Konva.Layer();
+    stickerLayer.opacity(.6);
+    stage.add(stickerLayer);
+
+    const _top = 200, left = 100, strokeWidth = fontSize * strokeWidthEffeciency[fontFamily];
+
+    const stickerText = new Konva.Text({
+      x: left,
+      y: _top,
+      text,
+      fontSize,
+      align: 'center',
+      fontFamily,
+      stroke: '#fff',
+      fill: '#fff',
+      fontStyle: 'bold',
+      strokeWidth,
+      fillEnabled: true,
+      fillAfterStrokeEnabled: true
+    })
+
+    stickerLayer.add(stickerText);
+
+    const textLayer = new Konva.Layer();
+    stage.add(textLayer);
+    const textContent = new Konva.Text({
+      x: left,
+      y: _top,
+      text,
+      fontSize,
+      fontFamily,
+      align: 'center',
+      fontStyle: 'bold',
+      fill: 'red'
+    })
+
+    textLayer.add(textContent);
+
+    textLayer.draw();
+    stickerLayer.draw();
     return () => {
       canvas.dispose();
+      stage.destroy();
       canvasRef.current = null; 
     };
   }, [text, fontSize, fontFamily, imageUrl]);
 
   return (
     <>
-      <canvas
-        id="fabric-canvas"
-        width={800}
-        height={600}
-        style={{ border: '1px solid #ccc' }}
-      />
+      <div className="flex">
+
+        <canvas
+          id="fabric-canvas"
+          width={800}
+          height={600}
+          style={{ border: '1px solid #ccc' }}
+        />
+        <div ref={containerRef}>
+        </div>
+      </div>
 
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
