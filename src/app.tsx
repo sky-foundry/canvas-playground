@@ -129,7 +129,8 @@ export const App = () => {
       fontStyle: 'bold',
       strokeWidth,
       fillEnabled: true,
-      fillAfterStrokeEnabled: true
+      fillAfterStrokeEnabled: true,
+      lineJoin: 'round',
     })
 
     stickerLayer.add(stickerText);
@@ -174,7 +175,7 @@ export const App = () => {
 
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
-        <input
+        <textarea
           className="border-2 border-solid border-[#000] rounded-md w-32 px-2 py-1"
           type="text"
           value={text}
