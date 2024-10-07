@@ -107,6 +107,9 @@ export const App = () => {
       fill: '#fff',
       stroke: '#fff',
       strokeWidth,
+      fillEnabled: true,
+      fillAfterStrokeEnabled: true,
+      lineJoin: 'round',
     })
 
     stickerLayer.add(stickerText);
