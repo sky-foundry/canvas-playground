@@ -1,20 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 import Konva from 'konva';
+import { Layer } from 'konva/lib/Layer';
 
-const strokeWidthEffeciency = {
-  "Georgia": 0.4,
-  "Arial": 0.33,
-  "Courier New": 1.37,
-  "Verdana": .45,
-  "Times New Roman": .4,
-  "Trebuchet MS": .48,
-  "Lucida Console": 1.85,
-  "Comic Sans MS": .5,
+interface Point {
+  x: number;
+  y: number;
 }
 
 export const App = () => {
-  const canvasRef = useRef<fabric.Canvas | null>(null); 
+  const canvasRef = useRef<fabric.Canvas | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [text, setText] = useState<string>('abc');
   const [fontSize, setFontSize] = useState<number>(100);
@@ -32,31 +27,17 @@ export const App = () => {
       fabric.Image.fromURL(imageUrl, (img) => {
         img.scaleToWidth(800);
         img.scaleToHeight(600);
-        canvasRef.current?.setBackgroundImage(img, canvasRef.current.renderAll.bind(canvasRef.current)); 
+        canvasRef.current?.setBackgroundImage(img, canvasRef.current.renderAll.bind(canvasRef.current));
       });
     }
-
-    const gradient = new fabric.Gradient({
-      type: 'linear',
-      coords: {
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: 100
-      },
-      colorStops: [
-        { offset: 0, color: '#000' },
-        { offset: 1, color: 'rgba(255,255,255,0.2)' }
-      ]
-    });
 
     const engravedText = new fabric.Text(text, {
       fontFamily: fontFamily,
       fontSize: fontSize,
       fontWeight: 800,
-      fill: 'rgba(0, 0, 0, .1)',
-      stroke: gradient,
-      strokeWidth: 3,
+      fill: 'rgba(0, 0, 0, .05)',
+      stroke: 'rgba(255,255,255,.4)',
+      strokeWidth: 1,
       left: 50,
       top: 100,
     });
@@ -70,16 +51,18 @@ export const App = () => {
       strokeWidth: 8,
       left: 50,
       top: 100,
-      clipPath: engravedText
+      clipPath: engravedText,
+    });
+
+    const shadow = new fabric.Shadow({
+      color: 'rgba(0, 0, 0, 0.5)', // Shadow color
+      blur: 15, // Shadow blur amount
+      offsetX: 5, // Shadow X offset
+      offsetY: 5, // Shadow Y offset
     });
 
     const group = new fabric.Group([engravedText, shadowText], {
-      shadow: {
-        color: 'rgba(0, 0, 0, 0.5)',
-        blur: 15,
-        offsetX: 5,
-        offsetY: 5
-      },
+      shadow,
     });
 
     canvas.add(group);
@@ -89,7 +72,7 @@ export const App = () => {
     const height = 600;
 
     const stage = new Konva.Stage({
-      container: containerRef.current as string,
+      container: containerRef.current as HTMLDivElement,
       width,
       height
     })
@@ -98,7 +81,7 @@ export const App = () => {
     stage.add(backgroundLayer);
 
     const imageObj = new Image();
-    imageObj.src = './wood.jpg';
+    imageObj.src = imageUrl;
     imageObj.onload = function () {
       const backgroundImage = new Konva.Image({
         x: 0,
@@ -112,11 +95,8 @@ export const App = () => {
     }
 
     const stickerLayer = new Konva.Layer();
-    stickerLayer.opacity(.6);
-    stage.add(stickerLayer);
 
-    const _top = 200, left = 100, strokeWidth = fontSize * strokeWidthEffeciency[fontFamily];
-
+    const _top = 200, left = 100, strokeWidth = 1;
     const stickerText = new Konva.Text({
       x: left,
       y: _top,
@@ -124,18 +104,109 @@ export const App = () => {
       fontSize,
       align: 'center',
       fontFamily,
-      stroke: '#fff',
       fill: '#fff',
-      fontStyle: 'bold',
+      stroke: '#fff',
       strokeWidth,
-      fillEnabled: true,
-      fillAfterStrokeEnabled: true
     })
 
     stickerLayer.add(stickerText);
 
-    const textLayer = new Konva.Layer();
-    stage.add(textLayer);
+    // const maxWidthOfStickerText = stickerText.width();
+
+    // const textsForLines = text.split('\n');
+    // textsForLines.forEach((_text, index) => {
+    //   const textInstance = new Konva.Text({
+    //     x: left,
+    //     y: _top,
+    //     text: _text,
+    //     fontSize,
+    //     align: 'center',
+    //     fontFamily,
+    //     fill: '#fff',
+    //     stroke: '#fff',
+    //     strokeWidth: 20
+    //   });
+
+    //   let expectedLeft = (maxWidthOfStickerText - textInstance.width()) / 2 + left;
+    //   let expectedWidth = textInstance.width();
+
+    //   const textInstanceForFirstletter = new Konva.Text({
+    //     x: left,
+    //     y: _top,
+    //     text: _text[0],
+    //     fontSize,
+    //     align: 'center',
+    //     fontFamily,
+    //     fill: '#fff',
+    //     stroke: '#fff',
+    //     strokeWidth: 20
+    //   })
+
+    //   const firstChar = _text[0];
+    //   const lastChar = _text[_text.length - 1];
+
+    //   const charsToAdjustLeft = ['A', 'C', 'G', 'O', 'Q', 'V', 'W', 'X', 'Y', 'Z'];
+    //   const charsToAdjustLeftMore = ['J'];
+    //   const charsToAdjustWidth = ['A', 'B', 'D', 'O', 'Q'];
+
+    //   const textWidth = textInstanceForFirstletter.width();
+
+    //   if (charsToAdjustLeft.includes(firstChar)) {
+    //     expectedLeft += textWidth / 4;
+    //     expectedWidth -= textWidth / 4;
+    //   }
+
+    //   if (charsToAdjustLeftMore.includes(firstChar)) {
+    //     expectedLeft += textWidth / 2;
+    //     expectedWidth -= textWidth / 2;
+    //   }
+
+    //   if (!charsToAdjustWidth.includes(lastChar)) {
+    //     expectedWidth -= textWidth;
+    //   }
+
+    //   if (expectedWidth < 0) expectedWidth = 0;
+
+    //   const rectForEachTextLine = new Konva.Rect({
+    //     x: expectedLeft,
+    //     y: _top + index * fontSize + fontSize * .2,
+    //     width: expectedWidth,
+    //     heigth: fontSize * .6,
+    //     fill: '#fff',
+    //     strokeWidth: 20,
+    //     cornerRadius: 30
+    //   })
+
+    //   stickerLayer.add(rectForEachTextLine);
+
+    //   function createTextLineRect(yPosition: number, stickerLayer: Layer, expectedLeft: number, expectedWidth: number, fontSize: number) {
+    //     const rectForEachTextLine = new Konva.Rect({
+    //       x: expectedLeft,
+    //       y: yPosition,
+    //       width: expectedWidth,
+    //       height: fontSize * 0.6,
+    //       fill: '#fff',
+    //       strokeWidth: 20,
+    //       cornerRadius: 30
+    //     });
+    //     stickerLayer.add(rectForEachTextLine);
+    //   }
+
+    //   if (index > 0 && _text.length < textsForLines[index - 1].length) {
+    //     const yPosition = _top + (index - 1) * fontSize + fontSize * 0.8;
+    //     createTextLineRect(yPosition, stickerLayer, expectedLeft, expectedWidth, fontSize);
+    //   }
+
+    //   if (index < textsForLines.length - 1 && _text.length < textsForLines[index + 1].length) {
+    //     const yPosition = _top + (index + 1) * fontSize + fontSize * 0.8;
+    //     createTextLineRect(yPosition, stickerLayer, expectedLeft, expectedWidth, fontSize);
+    //   }
+
+    // })
+
+    stage.add(stickerLayer);
+    stickerLayer.draw()
+
     const textContent = new Konva.Text({
       x: left,
       y: _top,
@@ -143,18 +214,147 @@ export const App = () => {
       fontSize,
       fontFamily,
       align: 'center',
-      fontStyle: 'bold',
-      fill: 'red'
+      fill: '#fff'
     })
 
-    textLayer.add(textContent);
+    const sortWhitePixels = (whitePixels: Point[]): Point[] => {
+      return whitePixels.sort((a: Point, b: Point) => {
+        if (a.x === b.x) {
+          return a.y - b.y;
+        }
+        return a.x - b.x;
+      });
+    };
 
+    const extractWhitePixels = (layer: Layer, stepSize: number = 5): Point[] => {
+      const offScreenCanvas = layer.toCanvas();
+      const offScreenCtx = offScreenCanvas.getContext('2d');
+
+      const imageData = offScreenCtx?.getImageData(0, 0, offScreenCanvas.width, offScreenCanvas.height);
+      const data = imageData?.data;
+      if (!data) return [];
+      const whitePixels = [];
+      for (let y = 0; y < offScreenCanvas.height; y += stepSize) {
+        for (let x = 0; x < offScreenCanvas.width; x += stepSize) {
+          const i = (y * offScreenCanvas.width + x) * 4;
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+
+          if (r === 255 && g === 255 && b === 255 && a === 255) {
+            whitePixels.push({ x, y });
+          }
+        }
+      }
+      return sortWhitePixels(whitePixels);
+    }
+
+    const drawFilledPath = (whitePixels: Point[]) => {
+      const points = whitePixels.flatMap(pixel => [pixel.x, pixel.y]);
+      const path = new Konva.Line({
+        points: points,
+        fill: 'rgba(255, 255, 255, 1)',
+        stroke: '#fff',
+        strokeWidth: fontSize * .7,
+        closed: true,
+        lineCap: 'square',
+        lineJoin: 'round',
+      });
+      // const pathRect = path.getClientRect();
+
+      // const scaleX = textContent.width() / pathRect.width  * 1.2;
+      // const scaleY = textContent.height() / pathRect.height * 1.2;
+
+      // path.scaleX(scaleX);
+      // path.scaleY(scaleY);
+      // const scaledPathRect = path.getClientRect();
+
+      // const newRect = new Konva.Rect({
+      //   x: scaledPathRect.x,
+      //   y: scaledPathRect.y,
+      //   width: scaledPathRect.width,
+      //   height: scaledPathRect.height,
+      //   fill: 'red',
+      //   opacity: .2
+      // })
+
+      // const textContentRect = textContent.getClientRect();
+      // path.position({
+      //   x: textContentRect.x - pathRect.x - 20,
+      //   y: textContentRect.y - pathRect.y
+      // });
+      // newRect.position({
+      //   x: textContentRect.x - pathRect.x - 20,
+      //   y: textContentRect.y - pathRect.y + 60
+      // })
+
+      // console.log(textContent.height(), newRect.height())
+      const layer = new Konva.Layer();
+      layer.opacity(.5);
+      layer.add(path);
+      // layer.add(newRect)
+      stage.add(layer);
+      layer.draw();
+    }
+
+    const findPolygonVertices = (whitePixels: Point[]) => {
+      if (whitePixels.length === 0) return [];
+
+      const vertices = [];
+      const visited = new Set();
+
+      function distance(p1: Point, p2: Point) {
+        return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+      }
+
+      let currentPoint = whitePixels[0];
+      vertices.push(currentPoint);
+      visited.add(`${currentPoint.x},${currentPoint.y}`);
+
+      while (true) {
+        let nearestPoint = null;
+        let minDist = Infinity;
+
+        for (const pixel of whitePixels) {
+          const pixelKey = `${pixel.x},${pixel.y}`;
+          if (!visited.has(pixelKey)) {
+            const dist = distance(currentPoint, pixel);
+            if (dist < minDist) {
+              minDist = dist;
+              nearestPoint = pixel;
+            }
+          }
+        }
+
+        if (!nearestPoint) break;
+
+        vertices.push(nearestPoint);
+        visited.add(`${nearestPoint.x},${nearestPoint.y}`);
+
+        currentPoint = nearestPoint;
+      }
+
+      vertices.push(vertices[0]);
+
+      return vertices;
+    }
+
+    const whitePixels = extractWhitePixels(stickerLayer);
+    const polygonVertices = findPolygonVertices(whitePixels);
+    drawFilledPath(polygonVertices);
+
+    stickerLayer.remove()
+
+    const textLayer = new Konva.Layer();
+    stage.add(textLayer);
+
+    textLayer.add(textContent);
     textLayer.draw();
-    stickerLayer.draw();
     return () => {
       canvas.dispose();
       stage.destroy();
-      canvasRef.current = null; 
+      canvasRef.current = null;
     };
   }, [text, fontSize, fontFamily, imageUrl]);
 
@@ -174,9 +374,8 @@ export const App = () => {
 
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
-        <input
+        <textarea
           className="border-2 border-solid border-[#000] rounded-md w-32 px-2 py-1"
-          type="text"
           value={text}
           onChange={(e) => {
             const value = (e.target as HTMLInputElement).value;
@@ -217,7 +416,10 @@ export const App = () => {
           <option value="Times New Roman">Times New Roman</option>
           <option value="Trebuchet MS">Trebuchet MS</option>
           <option value="Lucida Console">Lucida Console</option>
+          <option value="Great Vibes">Great Vibes</option>
           <option value="Comic Sans MS">Comic Sans MS</option>
+          <option value="customFont1">Custom Font 1</option>
+          <option value="customFont2">Custom Font 2</option>
         </select>
       </div>
 
@@ -226,7 +428,7 @@ export const App = () => {
         <select
           className="border-2 border-solid border-[#000] rounded-md w-32 px-2 py-1"
           onChange={(e) => {
-            const selectedImage = (e.target as HTMLSelectElement).value; 
+            const selectedImage = (e.target as HTMLSelectElement).value;
             if (selectedImage === 'upload') {
               document.getElementById('imageUpload')?.click();
             } else {
@@ -252,7 +454,7 @@ export const App = () => {
               reader.onload = (event) => {
                 const uploadedImage = event.target?.result;
                 if (uploadedImage) {
-                  loadImage(uploadedImage as string); 
+                  loadImage(uploadedImage as string);
                 }
               };
               reader.readAsDataURL(file);
