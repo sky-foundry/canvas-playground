@@ -71,6 +71,26 @@ export const App = () => {
     const width = window.innerWidth / 2;
     const height = 600;
 
+    /*-----------------------      Overview      --------------------------------*/
+    /*-----------------------------------------------------------------------------
+    | 1. Add Background Layer                                                     |                          
+    |    Add background on this layer and it would be at the bottom of the stage. |
+    | 2. Add Sticker Layer                                                        |
+    |    This layer make cut off shape. Draw text with stroke and fill with white |
+    |    color. Detect the white pixels from this layer and then remove.          |
+    | 3. Detect White Pixels from stickerLayer                                    |
+    |    const whitePixels = extractWhitePixels(stickerLayer);                    |
+    |    Get x, y coordinates of white pixels from stickerLayer.                  |
+    | 4. Find the minimized polygon vertices from whitePixels                     |
+    |    const polygonVertices = findPolygonVertices(whitePixels);                |
+    |    drawFilledPath(polygonVertices);                                         | 
+    |    Find the coordinates of polygon of shape that include all points based   |
+    |    on the coordinates of white pixels. And fill the background color(e.g.   |
+    |    white) in this polygon.                                                  |
+    | 5. Add the Text Layer                                                       |
+    |    Add text on the stage.                                                   |
+    -----------------------------------------------------------------------------*/
+
     const stage = new Konva.Stage({
       container: containerRef.current as HTMLDivElement,
       width,
@@ -98,14 +118,14 @@ export const App = () => {
 
     const _top = 200, left = 100, strokeWidth = 1;
     const stickerText = new Konva.Text({
-      x: left,
-      y: _top,
+      x: left + fontSize * .2,
+      y: _top + fontSize * .15,
       text,
-      fontSize,
+      fontSize: fontSize * .9,
       align: 'center',
       fontFamily,
-      fill: '#fff',
-      stroke: '#fff',
+      fill: '#fff', // filled by white color
+      stroke: '#fff', // filled by white color
       strokeWidth,
       fillEnabled: true,
       fillAfterStrokeEnabled: true,
@@ -114,112 +134,10 @@ export const App = () => {
 
     stickerLayer.add(stickerText);
 
-    // const maxWidthOfStickerText = stickerText.width();
-
-    // const textsForLines = text.split('\n');
-    // textsForLines.forEach((_text, index) => {
-    //   const textInstance = new Konva.Text({
-    //     x: left,
-    //     y: _top,
-    //     text: _text,
-    //     fontSize,
-    //     align: 'center',
-    //     fontFamily,
-    //     fill: '#fff',
-    //     stroke: '#fff',
-    //     strokeWidth: 20
-    //   });
-
-    //   let expectedLeft = (maxWidthOfStickerText - textInstance.width()) / 2 + left;
-    //   let expectedWidth = textInstance.width();
-
-    //   const textInstanceForFirstletter = new Konva.Text({
-    //     x: left,
-    //     y: _top,
-    //     text: _text[0],
-    //     fontSize,
-    //     align: 'center',
-    //     fontFamily,
-    //     fill: '#fff',
-    //     stroke: '#fff',
-    //     strokeWidth: 20
-    //   })
-
-    //   const firstChar = _text[0];
-    //   const lastChar = _text[_text.length - 1];
-
-    //   const charsToAdjustLeft = ['A', 'C', 'G', 'O', 'Q', 'V', 'W', 'X', 'Y', 'Z'];
-    //   const charsToAdjustLeftMore = ['J'];
-    //   const charsToAdjustWidth = ['A', 'B', 'D', 'O', 'Q'];
-
-    //   const textWidth = textInstanceForFirstletter.width();
-
-    //   if (charsToAdjustLeft.includes(firstChar)) {
-    //     expectedLeft += textWidth / 4;
-    //     expectedWidth -= textWidth / 4;
-    //   }
-
-    //   if (charsToAdjustLeftMore.includes(firstChar)) {
-    //     expectedLeft += textWidth / 2;
-    //     expectedWidth -= textWidth / 2;
-    //   }
-
-    //   if (!charsToAdjustWidth.includes(lastChar)) {
-    //     expectedWidth -= textWidth;
-    //   }
-
-    //   if (expectedWidth < 0) expectedWidth = 0;
-
-    //   const rectForEachTextLine = new Konva.Rect({
-    //     x: expectedLeft,
-    //     y: _top + index * fontSize + fontSize * .2,
-    //     width: expectedWidth,
-    //     heigth: fontSize * .6,
-    //     fill: '#fff',
-    //     strokeWidth: 20,
-    //     cornerRadius: 30
-    //   })
-
-    //   stickerLayer.add(rectForEachTextLine);
-
-    //   function createTextLineRect(yPosition: number, stickerLayer: Layer, expectedLeft: number, expectedWidth: number, fontSize: number) {
-    //     const rectForEachTextLine = new Konva.Rect({
-    //       x: expectedLeft,
-    //       y: yPosition,
-    //       width: expectedWidth,
-    //       height: fontSize * 0.6,
-    //       fill: '#fff',
-    //       strokeWidth: 20,
-    //       cornerRadius: 30
-    //     });
-    //     stickerLayer.add(rectForEachTextLine);
-    //   }
-
-    //   if (index > 0 && _text.length < textsForLines[index - 1].length) {
-    //     const yPosition = _top + (index - 1) * fontSize + fontSize * 0.8;
-    //     createTextLineRect(yPosition, stickerLayer, expectedLeft, expectedWidth, fontSize);
-    //   }
-
-    //   if (index < textsForLines.length - 1 && _text.length < textsForLines[index + 1].length) {
-    //     const yPosition = _top + (index + 1) * fontSize + fontSize * 0.8;
-    //     createTextLineRect(yPosition, stickerLayer, expectedLeft, expectedWidth, fontSize);
-    //   }
-
-    // })
-
     stage.add(stickerLayer);
-    stickerLayer.draw()
+    stickerLayer.draw();
 
-    const textContent = new Konva.Text({
-      x: left,
-      y: _top,
-      text,
-      fontSize,
-      fontFamily,
-      align: 'center',
-      fill: '#fff'
-    })
-
+    // sort white pixels by x coordinate
     const sortWhitePixels = (whitePixels: Point[]): Point[] => {
       return whitePixels.sort((a: Point, b: Point) => {
         if (a.x === b.x) {
@@ -229,6 +147,7 @@ export const App = () => {
       });
     };
 
+    // detect white pixel coordinates from layer. in this case from stickerLayer
     const extractWhitePixels = (layer: Layer, stepSize: number = 5): Point[] => {
       const offScreenCanvas = layer.toCanvas();
       const offScreenCtx = offScreenCanvas.getContext('2d');
@@ -253,54 +172,7 @@ export const App = () => {
       return sortWhitePixels(whitePixels);
     }
 
-    const drawFilledPath = (whitePixels: Point[]) => {
-      const points = whitePixels.flatMap(pixel => [pixel.x, pixel.y]);
-      const path = new Konva.Line({
-        points: points,
-        fill: 'rgba(255, 255, 255, 1)',
-        stroke: '#fff',
-        strokeWidth: fontSize * .7,
-        closed: true,
-        lineCap: 'square',
-        lineJoin: 'round',
-      });
-      // const pathRect = path.getClientRect();
-
-      // const scaleX = textContent.width() / pathRect.width  * 1.2;
-      // const scaleY = textContent.height() / pathRect.height * 1.2;
-
-      // path.scaleX(scaleX);
-      // path.scaleY(scaleY);
-      // const scaledPathRect = path.getClientRect();
-
-      // const newRect = new Konva.Rect({
-      //   x: scaledPathRect.x,
-      //   y: scaledPathRect.y,
-      //   width: scaledPathRect.width,
-      //   height: scaledPathRect.height,
-      //   fill: 'red',
-      //   opacity: .2
-      // })
-
-      // const textContentRect = textContent.getClientRect();
-      // path.position({
-      //   x: textContentRect.x - pathRect.x - 20,
-      //   y: textContentRect.y - pathRect.y
-      // });
-      // newRect.position({
-      //   x: textContentRect.x - pathRect.x - 20,
-      //   y: textContentRect.y - pathRect.y + 60
-      // })
-
-      // console.log(textContent.height(), newRect.height())
-      const layer = new Konva.Layer();
-      layer.opacity(.5);
-      layer.add(path);
-      // layer.add(newRect)
-      stage.add(layer);
-      layer.draw();
-    }
-
+    // find the minimized polygon vertices that includes all white pixels
     const findPolygonVertices = (whitePixels: Point[]) => {
       if (whitePixels.length === 0) return [];
 
@@ -343,15 +215,51 @@ export const App = () => {
       return vertices;
     }
 
+    // draw shape based on polygon vertices
+    const drawFilledPath = (whitePixels: Point[]) => {
+      const points = whitePixels.flatMap(pixel => [pixel.x, pixel.y]);
+      const path = new Konva.Line({
+        points: points,
+        fill: 'rgba(255, 255, 255, 1)',
+        stroke: '#1677ff',
+        strokeWidth: fontSize * .6,
+        closed: true,
+        lineCap: 'square',
+        lineJoin: 'round',
+        shadowColor: '#fff',  // Green shadow color
+        shadowBlur: 2,  // Blur effect for shadow
+        shadowOffset: { x: 0, y: 0 },  // Offset for the shadow (moves it right and down)
+        shadowOpacity: 0.6,
+      });
+      const layer = new Konva.Layer();
+      layer.opacity(.3);
+      layer.add(path);
+      stage.add(layer);
+      layer.draw();
+    }
+
     const whitePixels = extractWhitePixels(stickerLayer);
     const polygonVertices = findPolygonVertices(whitePixels);
     drawFilledPath(polygonVertices);
 
+    // after detecting white pixels remove the stickerLayer
     stickerLayer.remove()
 
     const textLayer = new Konva.Layer();
     stage.add(textLayer);
 
+    const textContent = new Konva.Text({
+      x: left,
+      y: _top,
+      text,
+      fontSize,
+      fontFamily,
+      align: 'center',
+      fill: '#fff',
+      stroke: '#1677ff',  // Green shadow color
+      strokeWidth: 1,
+      opacity: .8
+    })
     textLayer.add(textContent);
     textLayer.draw();
     return () => {
