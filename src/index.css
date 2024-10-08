@@ -1,3 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Importing the Google Font "Great Vibes" */
+
+/* Define your custom fonts */
+@font-face {
+    font-family: 'customFont1';
+    src: url('/fonts/X-4qQCZzh_az9PkEd5Jnq.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'customFont2';
+    src: url('/fonts/Aplim5QTVyZpHAUSpI2aD.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+

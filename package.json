@@ -9,14 +9,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.19",
+    "fabric": "^5.4.0",
+    "konva": "^9.3.15",
     "postcss": "^8.4.39",
     "preact": "^10.22.1",
+    "react-konva": "^18.2.10",
     "tailwindcss": "^3.4.6",
     "transformation-matrix": "^2.16.1"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.3",
+    "@types/fabric": "^5.3.9",
+    "@types/react-dom": "^18.3.0",
     "typescript": "^5.2.2",
     "vite": "^5.3.4"
   }
