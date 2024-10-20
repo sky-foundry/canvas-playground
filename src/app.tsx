@@ -1,16 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
-import Konva from 'konva';
-import { Layer } from 'konva/lib/Layer';
-
-interface Point {
-  x: number;
-  y: number;
-}
+import EngravedText from './components/EngravedText';
+import Strike from './components/strike';
 
 export const App = () => {
   const canvasRef = useRef<fabric.Canvas | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const [text, setText] = useState<string>('abc');
   const [fontSize, setFontSize] = useState<number>(100);
   const [fontFamily, setFontFamily] = useState<string>('Georgia');
@@ -66,10 +60,9 @@ export const App = () => {
     });
 
     canvas.add(group);
+    // canvas.add(engravedText)
     canvas.renderAll();
 
-    const width = window.innerWidth / 2;
-    const height = 600;
 
     /*-----------------------      Overview      --------------------------------*/
     /*-----------------------------------------------------------------------------
@@ -91,180 +84,8 @@ export const App = () => {
     |    Add text on the stage.                                                   |
     -----------------------------------------------------------------------------*/
 
-    const stage = new Konva.Stage({
-      container: containerRef.current as HTMLDivElement,
-      width,
-      height
-    })
-
-    const backgroundLayer = new Konva.Layer();
-    stage.add(backgroundLayer);
-
-    const imageObj = new Image();
-    imageObj.src = imageUrl;
-    imageObj.onload = function () {
-      const backgroundImage = new Konva.Image({
-        x: 0,
-        y: 0,
-        image: imageObj,
-        width,
-        height
-      })
-      backgroundLayer.add(backgroundImage);
-      backgroundLayer.draw();
-    }
-
-    const stickerLayer = new Konva.Layer();
-
-    const _top = 200, left = 100, strokeWidth = 1;
-    const stickerText = new Konva.Text({
-      x: left + fontSize * .2,
-      y: _top + fontSize * .15,
-      text,
-      fontSize: fontSize * .9,
-      align: 'center',
-      fontFamily,
-      fill: '#fff', // filled by white color
-      stroke: '#fff', // filled by white color
-      strokeWidth,
-      fillEnabled: true,
-      fillAfterStrokeEnabled: true,
-      lineJoin: 'round',
-    })
-
-    stickerLayer.add(stickerText);
-
-    stage.add(stickerLayer);
-    stickerLayer.draw();
-
-    // sort white pixels by x coordinate
-    const sortWhitePixels = (whitePixels: Point[]): Point[] => {
-      return whitePixels.sort((a: Point, b: Point) => {
-        if (a.x === b.x) {
-          return a.y - b.y;
-        }
-        return a.x - b.x;
-      });
-    };
-
-    // detect white pixel coordinates from layer. in this case from stickerLayer
-    const extractWhitePixels = (layer: Layer, stepSize: number = 5): Point[] => {
-      const offScreenCanvas = layer.toCanvas();
-      const offScreenCtx = offScreenCanvas.getContext('2d');
-
-      const imageData = offScreenCtx?.getImageData(0, 0, offScreenCanvas.width, offScreenCanvas.height);
-      const data = imageData?.data;
-      if (!data) return [];
-      const whitePixels = [];
-      for (let y = 0; y < offScreenCanvas.height; y += stepSize) {
-        for (let x = 0; x < offScreenCanvas.width; x += stepSize) {
-          const i = (y * offScreenCanvas.width + x) * 4;
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const a = data[i + 3];
-
-          if (r === 255 && g === 255 && b === 255 && a === 255) {
-            whitePixels.push({ x, y });
-          }
-        }
-      }
-      return sortWhitePixels(whitePixels);
-    }
-
-    // find the minimized polygon vertices that includes all white pixels
-    const findPolygonVertices = (whitePixels: Point[]) => {
-      if (whitePixels.length === 0) return [];
-
-      const vertices = [];
-      const visited = new Set();
-
-      function distance(p1: Point, p2: Point) {
-        return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-      }
-
-      let currentPoint = whitePixels[0];
-      vertices.push(currentPoint);
-      visited.add(`${currentPoint.x},${currentPoint.y}`);
-
-      while (true) {
-        let nearestPoint = null;
-        let minDist = Infinity;
-
-        for (const pixel of whitePixels) {
-          const pixelKey = `${pixel.x},${pixel.y}`;
-          if (!visited.has(pixelKey)) {
-            const dist = distance(currentPoint, pixel);
-            if (dist < minDist) {
-              minDist = dist;
-              nearestPoint = pixel;
-            }
-          }
-        }
-
-        if (!nearestPoint) break;
-
-        vertices.push(nearestPoint);
-        visited.add(`${nearestPoint.x},${nearestPoint.y}`);
-
-        currentPoint = nearestPoint;
-      }
-
-      vertices.push(vertices[0]);
-
-      return vertices;
-    }
-
-    // draw shape based on polygon vertices
-    const drawFilledPath = (whitePixels: Point[]) => {
-      const points = whitePixels.flatMap(pixel => [pixel.x, pixel.y]);
-      const path = new Konva.Line({
-        points: points,
-        fill: 'rgba(255, 255, 255, 1)',
-        stroke: '#1677ff',
-        strokeWidth: fontSize * .6,
-        closed: true,
-        lineCap: 'square',
-        lineJoin: 'round',
-        shadowColor: '#fff',  // Green shadow color
-        shadowBlur: 2,  // Blur effect for shadow
-        shadowOffset: { x: 0, y: 0 },  // Offset for the shadow (moves it right and down)
-        shadowOpacity: 0.6,
-      });
-      const layer = new Konva.Layer();
-      layer.opacity(.3);
-      layer.add(path);
-      stage.add(layer);
-      layer.draw();
-    }
-
-    const whitePixels = extractWhitePixels(stickerLayer);
-    const polygonVertices = findPolygonVertices(whitePixels);
-    drawFilledPath(polygonVertices);
-
-    // after detecting white pixels remove the stickerLayer
-    stickerLayer.remove()
-
-    const textLayer = new Konva.Layer();
-    stage.add(textLayer);
-
-    const textContent = new Konva.Text({
-      x: left,
-      y: _top,
-      text,
-      fontSize,
-      fontFamily,
-      align: 'center',
-      fill: '#fff',
-      stroke: '#1677ff',  // Green shadow color
-      strokeWidth: 1,
-      opacity: .8
-    })
-    textLayer.add(textContent);
-    textLayer.draw();
     return () => {
       canvas.dispose();
-      stage.destroy();
       canvasRef.current = null;
     };
   }, [text, fontSize, fontFamily, imageUrl]);
@@ -279,10 +100,9 @@ export const App = () => {
           height={600}
           style={{ border: '1px solid #ccc' }}
         />
-        <div ref={containerRef}>
-        </div>
+        <Strike fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} />
       </div>
-
+      <EngravedText fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} />
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
         <textarea
@@ -372,6 +192,7 @@ export const App = () => {
             }
           }}
         />
+
       </div>
     </>
   );
