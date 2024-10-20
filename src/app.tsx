@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
-import EngravedText from './components/EngravedText';
+// import EngravedText from './components/EngravedText';
 import Strike from './components/strike';
 
 export const App = () => {
@@ -102,7 +102,7 @@ export const App = () => {
         />
         <Strike fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} />
       </div>
-      <EngravedText fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} />
+      {/* <EngravedText fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} /> */}
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
         <textarea
