@@ -17,7 +17,8 @@
     "preact": "^10.22.1",
     "react-konva": "^18.2.10",
     "tailwindcss": "^3.4.6",
-    "transformation-matrix": "^2.16.1"
+    "transformation-matrix": "^2.16.1",
+    "use-image": "^1.1.1"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.3",
