@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
-// import EngravedText from './components/EngravedText';
 import Strike from './components/strike';
 
 export const App = () => {
@@ -49,10 +48,10 @@ export const App = () => {
     });
 
     const shadow = new fabric.Shadow({
-      color: 'rgba(0, 0, 0, 0.5)', // Shadow color
-      blur: 15, // Shadow blur amount
-      offsetX: 5, // Shadow X offset
-      offsetY: 5, // Shadow Y offset
+      color: 'rgba(0, 0, 0, 0.5)',
+      blur: 15,
+      offsetX: 5,
+      offsetY: 5,
     });
 
     const group = new fabric.Group([engravedText, shadowText], {
@@ -102,7 +101,6 @@ export const App = () => {
         />
         <Strike fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} />
       </div>
-      {/* <EngravedText fontFamily={fontFamily} fontSize={fontSize} imageUrl={imageUrl} text={text} /> */}
       <div className="my-5 w-64 flex justify-between items-center">
         <label>Text: </label>
         <textarea
